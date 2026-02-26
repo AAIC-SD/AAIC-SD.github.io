@@ -86,16 +86,16 @@ section{padding:100px 0}.container{max-width:1200px;margin:0 auto;padding:0 32px
 .fade-in{opacity:0;transform:translateY(20px);transition:all 0.6s cubic-bezier(0.22,1,0.36,1)}.fade-in.visible{opacity:1;transform:translateY(0)}
 @media(max-width:960px){.nav-links{display:none}.nav-hamburger{display:block}.nav-links.open{display:flex;flex-direction:column;position:absolute;top:72px;left:0;right:0;background:var(--navy-deep);padding:16px;border-bottom:1px solid rgba(255,255,255,0.06)}.services-grid,.testimonial-grid{grid-template-columns:1fr}.inspectors{grid-template-columns:1fr}.radon-content,.contact-grid{grid-template-columns:1fr}.check-grid{grid-template-columns:1fr 1fr}.footer-grid{grid-template-columns:1fr 1fr;gap:28px}.hero-stats{gap:24px}section{padding:72px 0}}
 @media(max-width:640px){.container{padding:0 20px}.check-grid{grid-template-columns:1fr}.hero-stats{flex-direction:column;gap:14px}.footer-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.hero-actions{flex-direction:column;align-items:center}.footer-bottom{flex-direction:column;gap:10px;text-align:center}}
-.map-section{background:var(--navy);padding:0 0 96px;margin-top:-48px;position:relative;z-index:1}
+.map-section{background:var(--navy);padding:0 0 64px;margin-top:-48px;position:relative;z-index:1}
 .map-wrap{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);box-shadow:0 8px 32px rgba(0,0,0,0.3)}
-#inspectionMap{width:100%;height:520px;background:var(--navy-deep)}
+#inspectionMap{width:100%;height:340px;background:var(--navy-deep)}
 .map-header{text-align:center;padding:0 0 32px}
 .map-header h2{font-family:var(--font-display);font-size:28px;color:var(--cream);margin:0 0 8px}
 .map-header p{color:var(--slate-light);font-size:15px;margin:0}
 .map-legend{display:flex;justify-content:center;gap:24px;margin-top:16px;flex-wrap:wrap}
 .map-legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--slate-light)}
 .map-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-@media(max-width:640px){#inspectionMap{height:360px}.map-header h2{font-size:22px}}
+@media(max-width:640px){#inspectionMap{height:260px}.map-header h2{font-size:22px}}
 </style>
 </head>
 <body>
@@ -239,20 +239,14 @@ startRotation(fallbackReviews);}catch(e){console.log('Google Reviews fallback:',
 fetchGoogleReviews();
 </script>
 
-<!-- Map Data (exported monthly from tracker — replace this file to update pins) -->
+<!-- Live Map Data from Google Sheets + Geocoding -->
 <script>
-// Default empty data — will be overridden by map-data.js if present
-if(typeof AAIC_MAP_DATA==='undefined')var AAIC_MAP_DATA=[];
-</script>
-<script src="map-data.js" onerror="console.log('map-data.js not found — map will show demo pins')"></script>
+const SHEET_ID='1XidAoO5LQtX9WYKthiguFZ7AkxNN59BH9UHagK8kjLE';
+const MAP_API_KEY='AIzaSyBaXb9xr6udtu2jW8m7COjoEob9MsR4Ecs';
 
-<!-- Google Maps -->
-<script>
-function initMap(){
+async function initMap(){
   const mapEl=document.getElementById('inspectionMap');
   if(!mapEl)return;
-  const data=typeof AAIC_MAP_DATA!=='undefined'&&AAIC_MAP_DATA.length?AAIC_MAP_DATA:[];
-  // Default center: Rapid City, SD
   const center={lat:44.0805,lng:-103.2310};
   const map=new google.maps.Map(mapEl,{
     center:center,zoom:11,
@@ -268,55 +262,116 @@ function initMap(){
       {featureType:'poi.park',elementType:'geometry',stylers:[{color:'#1a3028'}]},
       {featureType:'administrative.locality',elementType:'labels.text.fill',stylers:[{color:'#8fa8bf'}]}
     ],
-    disableDefaultUI:true,
-    zoomControl:true,
-    mapTypeControl:false,
-    streetViewControl:false,
-    fullscreenControl:true
+    disableDefaultUI:true,zoomControl:true,mapTypeControl:false,streetViewControl:false,fullscreenControl:true
   });
-  if(!data.length){
-    // Show placeholder message
-    const overlay=document.createElement('div');
-    overlay.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b8299;font-size:15px;pointer-events:none;text-align:center;padding:20px';
-    overlay.textContent='Map data loading — export from inspection tracker to populate pins.';
-    mapEl.style.position='relative';
-    mapEl.appendChild(overlay);
-    return;
-  }
-  // Create markers with clustering
-  const bounds=new google.maps.LatLngBounds();
-  const infoWindow=new google.maps.InfoWindow();
-  const markers=data.map(pin=>{
-    const pos={lat:pin.lat,lng:pin.lng};
-    bounds.extend(pos);
-    const isKerry=pin.i&&pin.i.toLowerCase().includes('kerry');
-    const color=isKerry?'#4A90D9':'#D94A4A';
-    const marker=new google.maps.Marker({
-      position:pos,
-      map:map,
-      icon:{
-        path:google.maps.SymbolPath.CIRCLE,
-        fillColor:color,
-        fillOpacity:0.7,
-        strokeColor:color,
-        strokeOpacity:0.9,
-        strokeWeight:1,
-        scale:5
+
+  // Show loading message
+  const loadMsg=document.createElement('div');
+  loadMsg.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6b8299;font-size:14px;pointer-events:none;text-align:center;z-index:5';
+  loadMsg.textContent='Loading inspection data...';
+  mapEl.style.position='relative';
+  mapEl.appendChild(loadMsg);
+
+  try{
+    // Fetch date, address, city, inspector from sheet (columns C, D, E, P)
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Inspections!C:E?key=${MAP_API_KEY}`;
+    const url2=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Inspections!P:P?key=${MAP_API_KEY}`;
+    const [resp1,resp2]=await Promise.all([fetch(url),fetch(url2)]);
+    const data1=await resp1.json();
+    const data2=await resp2.json();
+    if(!data1.values||!data2.values){loadMsg.textContent='No inspection data found.';return;}
+
+    // Parse rows (skip header row)
+    const rows=[];
+    for(let i=1;i<data1.values.length;i++){
+      const r=data1.values[i];
+      const insp=data2.values[i]?data2.values[i][0]:'';
+      const date=r[0]||'';
+      const addr=r[1]||'';
+      const city=r[2]||'';
+      if(addr&&city)rows.push({date,addr:addr+', '+city+', SD',inspector:insp});
+    }
+
+    loadMsg.textContent=`Geocoding ${rows.length} inspections...`;
+
+    // Build unique addresses to minimize geocoding calls
+    const unique={};
+    rows.forEach(r=>{
+      const key=r.addr.toLowerCase().trim();
+      if(!unique[key])unique[key]={addr:r.addr,inspections:[]};
+      unique[key].inspections.push({d:r.date,i:r.inspector});
+    });
+
+    // Check localStorage cache for previously geocoded addresses
+    let cache={};
+    try{cache=JSON.parse(localStorage.getItem('aaic_map_geocache')||'{}');}catch(e){}
+
+    const keys=Object.keys(unique);
+    const toGeocode=keys.filter(k=>!cache[k]);
+
+    // Geocode missing addresses (batch in groups of 10 with delay)
+    let geocoded=0;
+    for(let i=0;i<toGeocode.length;i++){
+      const k=toGeocode[i];
+      try{
+        const gr=await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(unique[k].addr)}&key=${MAP_API_KEY}`);
+        const gd=await gr.json();
+        if(gd.results&&gd.results[0]){
+          const loc=gd.results[0].geometry.location;
+          cache[k]={lat:loc.lat,lng:loc.lng};
+        }
+      }catch(e){}
+      geocoded++;
+      if(geocoded%10===0){
+        loadMsg.textContent=`Geocoding... ${geocoded}/${toGeocode.length}`;
+        await new Promise(r=>setTimeout(r,1100));
       }
+    }
+
+    // Save cache
+    try{localStorage.setItem('aaic_map_geocache',JSON.stringify(cache));}catch(e){}
+
+    // Build pins
+    const bounds=new google.maps.LatLngBounds();
+    const infoWindow=new google.maps.InfoWindow();
+    let pinCount=0;
+
+    keys.forEach(k=>{
+      if(!cache[k])return;
+      const u=unique[k];
+      u.inspections.forEach(ins=>{
+        const pos={lat:cache[k].lat,lng:cache[k].lng};
+        bounds.extend(pos);
+        const isKerry=ins.i&&ins.i.toLowerCase().includes('kerry');
+        const color=isKerry?'#4A90D9':'#D94A4A';
+        const marker=new google.maps.Marker({
+          position:pos,map:map,
+          icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:color,fillOpacity:0.7,strokeColor:color,strokeOpacity:0.9,strokeWeight:1,scale:5}
+        });
+        marker.addListener('click',()=>{
+          const dateStr=ins.d?new Date(ins.d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+          infoWindow.setContent(`<div style="font-family:sans-serif;padding:4px 2px;min-width:120px"><strong style="font-size:13px;color:#1B2A3D">${ins.i||'Inspector'}</strong><br><span style="font-size:12px;color:#666">${dateStr}</span></div>`);
+          infoWindow.open(map,marker);
+        });
+        pinCount++;
+      });
     });
-    marker.addListener('click',()=>{
-      const dateStr=pin.d?new Date(pin.d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
-      infoWindow.setContent(`<div style="font-family:sans-serif;padding:4px 2px;min-width:120px"><strong style="font-size:13px;color:#1B2A3D">${pin.i||'Inspector'}</strong><br><span style="font-size:12px;color:#666">${dateStr}</span></div>`);
-      infoWindow.open(map,marker);
-    });
-    return marker;
-  });
-  // Fit bounds with padding
-  if(data.length>1)map.fitBounds(bounds,{top:40,right:40,bottom:40,left:40});
-  else{map.setCenter(data[0]);map.setZoom(13);}
-  // Update pin count in hero stat
-  const statNums=document.querySelectorAll('.hero-stat-num');
-  statNums.forEach(el=>{if(el.textContent.includes('2,500')){el.textContent=data.length.toLocaleString()+'+';} });
+
+    // Remove loading message
+    loadMsg.remove();
+
+    // Fit map to pins
+    if(pinCount>1)map.fitBounds(bounds,{top:40,right:40,bottom:40,left:40});
+    else if(pinCount===1)map.setZoom(13);
+
+    // Update hero stat with actual count
+    const statNums=document.querySelectorAll('.hero-stat-num');
+    statNums.forEach(el=>{if(el.textContent.includes('2,500'))el.textContent=pinCount.toLocaleString()+'+';});
+
+  }catch(e){
+    console.error('Map error:',e);
+    loadMsg.textContent='Unable to load map data.';
+  }
 }
 </script>
 <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaXb9xr6udtu2jW8m7COjoEob9MsR4Ecs&callback=initMap"></script>
