@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AAIC Admin | Command Center</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B2A3D;--navy-deep:#0F1C2E;--navy-light:#243B54;--navy-mid:#16263A;--slate:#4A6274;--slate-light:#8FA8BF;--red:#A03028;--red-light:#B83A30;--red-dim:rgba(160,48,40,0.08);--cream:#F7F4F0;--cream-dark:#E8E2DA;--warm-white:#FDFCFA;--white:#FFFFFF;--text:#2C3038;--text-light:#5A6068;--text-muted:#8A8E94;--text-on-dark:#C8CDD4;--green:#2E8B57;--green-dim:rgba(46,139,87,0.1);--blue:#4A90D9;--blue-dim:rgba(74,144,217,0.1);--amber:#D4960A;--amber-dim:rgba(212,150,10,0.1);--font-display:'Libre Baskerville',Georgia,serif;--font-body:'Source Sans 3','Segoe UI',sans-serif;--font-mono:'JetBrains Mono',monospace}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);color:var(--cream);background:var(--navy-deep);line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ─── LOGIN SCREEN ─── */
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--navy-deep);position:relative;overflow:hidden}
+.login-screen::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 50%,rgba(160,48,40,0.04) 0%,transparent 60%),radial-gradient(ellipse at 70% 30%,rgba(74,144,217,0.03) 0%,transparent 50%);pointer-events:none}
+.login-card{position:relative;width:100%;max-width:400px;padding:48px 40px;background:rgba(27,42,61,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:16px;backdrop-filter:blur(20px);box-shadow:0 24px 64px rgba(0,0,0,0.4)}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo h1{font-family:var(--font-display);font-size:22px;color:var(--cream);letter-spacing:-0.5px;margin-bottom:4px}
+.login-logo p{font-size:13px;color:var(--slate-light);font-weight:400;letter-spacing:1px;text-transform:uppercase}
+.login-divider{width:40px;height:2px;background:var(--red);margin:0 auto 28px;border-radius:2px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:12px;font-weight:600;color:var(--slate-light);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px}
+.login-field input{width:100%;padding:12px 16px;background:rgba(15,28,46,0.8);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:var(--cream);font-family:var(--font-body);font-size:15px;transition:all 0.2s;outline:none}
+.login-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(74,144,217,0.15)}
+.login-field input::placeholder{color:var(--slate)}
+.login-btn{width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:var(--font-body);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.25s;margin-top:8px}
+.login-btn:hover{background:var(--red-light);transform:translateY(-1px);box-shadow:0 4px 16px rgba(160,48,40,0.35)}
+.login-btn:active{transform:translateY(0)}
+.login-error{background:rgba(160,48,40,0.15);border:1px solid rgba(160,48,40,0.3);color:#E8A09C;font-size:13px;padding:10px 14px;border-radius:8px;margin-bottom:16px;display:none;text-align:center}
+.login-error.show{display:block;animation:shake 0.4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* ─── DASHBOARD ─── */
+.dashboard{display:none;min-height:100vh}
+.dash-topbar{background:rgba(15,28,46,0.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:50}
+.dash-topbar-left{display:flex;align-items:center;gap:16px}
+.dash-topbar-left h1{font-family:var(--font-display);font-size:16px;color:var(--cream);letter-spacing:-0.3px}
+.dash-topbar-left span{font-size:12px;color:var(--slate-light);font-weight:500;padding:4px 10px;background:rgba(74,144,217,0.1);border-radius:4px;text-transform:uppercase;letter-spacing:0.5px}
+.dash-topbar-right{display:flex;align-items:center;gap:12px}
+.dash-user{font-size:13px;color:var(--text-on-dark)}
+.dash-logout{background:none;border:1px solid rgba(255,255,255,0.1);color:var(--text-on-dark);padding:6px 16px;border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all 0.2s}
+.dash-logout:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.2);color:#fff}
+.back-to-site{color:var(--text-on-dark);font-size:13px;padding:6px 14px;border-radius:6px;transition:all 0.2s;border:1px solid rgba(255,255,255,0.08)}
+.back-to-site:hover{background:rgba(255,255,255,0.06);color:#fff}
+
+.dash-body{max-width:1200px;margin:0 auto;padding:32px 24px 64px}
+
+/* Welcome banner */
+.dash-welcome{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:32px 36px;margin-bottom:32px;position:relative;overflow:hidden}
+.dash-welcome::after{content:'';position:absolute;top:-30px;right:-30px;width:180px;height:180px;background:radial-gradient(circle,rgba(160,48,40,0.12) 0%,transparent 70%);pointer-events:none}
+.dash-welcome h2{font-family:var(--font-display);font-size:24px;color:var(--cream);margin-bottom:6px}
+.dash-welcome p{color:var(--slate-light);font-size:15px}
+.dash-welcome .dash-date{font-family:var(--font-mono);font-size:12px;color:var(--slate);margin-top:12px}
+
+/* Quick launch grid */
+.dash-section-label{font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;padding-left:2px}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:40px}
+.quick-card{background:var(--navy);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:24px;transition:all 0.25s;cursor:pointer;text-decoration:none;display:block;position:relative;overflow:hidden}
+.quick-card:hover{border-color:rgba(255,255,255,0.12);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.25)}
+.quick-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
+.quick-card h3{font-size:16px;font-weight:600;color:var(--cream);margin-bottom:4px}
+.quick-card p{font-size:13px;color:var(--slate-light);line-height:1.5}
+.quick-card .quick-arrow{position:absolute;top:24px;right:20px;font-size:16px;color:var(--slate);transition:all 0.25s}
+.quick-card:hover .quick-arrow{color:var(--cream);transform:translateX(3px)}
+
+/* Color accents for cards */
+.qc-tracker .quick-card-icon{background:var(--red-dim);color:var(--red-light)}
+.qc-homegauge .quick-card-icon{background:var(--blue-dim);color:var(--blue)}
+.qc-sheets .quick-card-icon{background:var(--green-dim);color:var(--green)}
+.qc-github .quick-card-icon{background:rgba(255,255,255,0.06);color:var(--cream)}
+.qc-square .quick-card-icon{background:rgba(255,255,255,0.06);color:var(--cream)}
+.qc-website .quick-card-icon{background:var(--amber-dim);color:var(--amber)}
+
+/* Bookmarks section */
+.bookmarks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:40px}
+.bookmark-link{display:flex;align-items:center;gap:10px;background:var(--navy);border:1px solid rgba(255,255,255,0.04);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--text-on-dark);transition:all 0.2s;text-decoration:none}
+.bookmark-link:hover{background:var(--navy-light);border-color:rgba(255,255,255,0.1);color:#fff}
+.bookmark-link span{font-size:16px}
+
+/* Notes area */
+.notes-section{background:var(--navy);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:24px;margin-bottom:40px}
+.notes-section h3{font-size:15px;font-weight:600;color:var(--cream);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.notes-textarea{width:100%;min-height:120px;padding:14px 16px;background:rgba(15,28,46,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:var(--cream);font-family:var(--font-mono);font-size:13px;line-height:1.7;resize:vertical;outline:none;transition:border-color 0.2s}
+.notes-textarea:focus{border-color:var(--blue)}
+.notes-textarea::placeholder{color:var(--slate)}
+.notes-save{margin-top:10px;padding:8px 20px;background:var(--navy-light);border:1px solid rgba(255,255,255,0.1);color:var(--cream);border-radius:6px;font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all 0.2s}
+.notes-save:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}
+.notes-saved{font-size:12px;color:var(--green);margin-left:10px;opacity:0;transition:opacity 0.3s}
+
+/* Responsive */
+@media(max-width:768px){
+  .dash-topbar{padding:0 16px}
+  .dash-body{padding:20px 16px 48px}
+  .dash-welcome{padding:24px}
+  .dash-welcome h2{font-size:20px}
+  .quick-grid{grid-template-columns:1fr}
+  .bookmarks-grid{grid-template-columns:1fr 1fr}
+  .login-card{margin:16px;padding:36px 28px}
+  .back-to-site{display:none}
+}
+@media(max-width:480px){
+  .bookmarks-grid{grid-template-columns:1fr}
+  .dash-topbar-left span{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN SCREEN ═══════════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>All American Inspection</h1>
+      <p>Command Center</p>
+    </div>
+    <div class="login-divider"></div>
+    <div class="login-error" id="loginError">Invalid credentials. Please try again.</div>
+    <form id="loginForm" onsubmit="return handleLogin(event)">
+      <div class="login-field">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter username" autocomplete="username" required>
+      </div>
+      <div class="login-field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="login-btn">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════ DASHBOARD ═══════════ -->
+<div class="dashboard" id="dashboard">
+
+  <!-- Top Bar -->
+  <div class="dash-topbar">
+    <div class="dash-topbar-left">
+      <h1>AAIC</h1>
+      <span>Command Center</span>
+    </div>
+    <div class="dash-topbar-right">
+      <a href="../aaic-website.html" class="back-to-site">← Back to Site</a>
+      <span class="dash-user" id="dashUser"></span>
+      <button class="dash-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+
+    <!-- Welcome Banner -->
+    <div class="dash-welcome">
+      <h2 id="welcomeMsg">Welcome back</h2>
+      <p>Your business tools and resources, all in one place.</p>
+      <div class="dash-date" id="dashDate"></div>
+    </div>
+
+    <!-- Quick Launch -->
+    <div class="dash-section-label">Quick Launch</div>
+    <div class="quick-grid">
+
+      <a href="../tracker/" class="quick-card qc-tracker">
+        <div class="quick-card-icon">📋</div>
+        <div class="quick-arrow">→</div>
+        <h3>Inspection Tracker</h3>
+        <p>Manage inspections, payments, commissions, and scheduling.</p>
+      </a>
+
+      <a href="https://www.homegauge.com/home-inspector/login" target="_blank" rel="noopener" class="quick-card qc-homegauge">
+        <div class="quick-card-icon">📑</div>
+        <div class="quick-arrow">→</div>
+        <h3>HomeGauge</h3>
+        <p>Create and manage inspection reports for clients.</p>
+      </a>
+
+      <a href="https://docs.google.com/spreadsheets/d/1XidAoO5LQtX9WYKthiguFZ7AkxNN59BH9UHagK8kjLE" target="_blank" rel="noopener" class="quick-card qc-sheets">
+        <div class="quick-card-icon">📊</div>
+        <div class="quick-arrow">→</div>
+        <h3>Google Sheets Data</h3>
+        <p>Raw inspection data, addresses, and financial records.</p>
+      </a>
+
+      <a href="https://github.com/AAIC-SD" target="_blank" rel="noopener" class="quick-card qc-github">
+        <div class="quick-card-icon">⚙️</div>
+        <div class="quick-arrow">→</div>
+        <h3>GitHub Repo</h3>
+        <p>Deploy website changes and manage code.</p>
+      </a>
+
+      <a href="https://squareup.com/dashboard" target="_blank" rel="noopener" class="quick-card qc-square">
+        <div class="quick-card-icon">💳</div>
+        <div class="quick-arrow">→</div>
+        <h3>Square Dashboard</h3>
+        <p>Payment processing and invoicing.</p>
+      </a>
+
+      <a href="../aaic-website.html" class="quick-card qc-website">
+        <div class="quick-card-icon">🌐</div>
+        <div class="quick-arrow">→</div>
+        <h3>View Website</h3>
+        <p>See the public-facing AAIC website.</p>
+      </a>
+
+    </div>
+
+    <!-- Quick Bookmarks -->
+    <div class="dash-section-label">Bookmarks</div>
+    <div class="bookmarks-grid">
+      <a href="https://www.internachi.org" target="_blank" rel="noopener" class="bookmark-link"><span>🏅</span> InterNACHI</a>
+      <a href="https://dlr.sd.gov/" target="_blank" rel="noopener" class="bookmark-link"><span>📜</span> SD DLR Licensing</a>
+      <a href="https://www.alphatrackinc.com/" target="_blank" rel="noopener" class="bookmark-link"><span>☢️</span> Alpha Track Radon</a>
+      <a href="https://mail.google.com" target="_blank" rel="noopener" class="bookmark-link"><span>✉️</span> Gmail</a>
+      <a href="https://www.google.com/maps" target="_blank" rel="noopener" class="bookmark-link"><span>📍</span> Google Maps</a>
+      <a href="https://business.google.com" target="_blank" rel="noopener" class="bookmark-link"><span>⭐</span> Google Business</a>
+    </div>
+
+    <!-- Notes -->
+    <div class="notes-section">
+      <h3>📝 Scratch Pad</h3>
+      <textarea class="notes-textarea" id="notesArea" placeholder="Quick notes, reminders, to-dos..."></textarea>
+      <div style="display:flex;align-items:center;margin-top:10px">
+        <button class="notes-save" onclick="saveNotes()">Save Notes</button>
+        <span class="notes-saved" id="notesSaved">✓ Saved</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── Authentication ───
+// SHA-256 hash for simple client-side auth
+// This is NOT bank-level security — it's a convenience gate for a static site.
+// Credentials: kerry / aaic2025 and brett / aaic2025
+async function hashStr(str){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// Usernames that are allowed to log in
+const VALID_USERS=['kerry','brett'];
+
+// We'll compute the real hashes on first load
+let HASH_READY=false;
+let VALID_HASH='';
+
+async function initHashes(){
+  VALID_HASH=await hashStr('aaic2025');
+  HASH_READY=true;
+}
+initHashes();
+
+async function handleLogin(e){
+  e.preventDefault();
+  const user=document.getElementById('username').value.trim().toLowerCase();
+  const pass=document.getElementById('password').value;
+  const errEl=document.getElementById('loginError');
+
+  if(!HASH_READY){await initHashes();}
+
+  const passHash=await hashStr(pass);
+  if(VALID_USERS.includes(user)&&passHash===VALID_HASH){
+    errEl.classList.remove('show');
+    sessionStorage.setItem('aaic_user',user);
+    showDashboard(user);
+  }else{
+    errEl.classList.add('show');
+    document.getElementById('password').value='';
+    document.getElementById('password').focus();
+  }
+  return false;
+}
+
+function handleLogout(){
+  sessionStorage.removeItem('aaic_user');
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('username').value='';
+  document.getElementById('password').value='';
+}
+
+function showDashboard(user){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+
+  const displayName=user.charAt(0).toUpperCase()+user.slice(1);
+  document.getElementById('dashUser').textContent=displayName;
+  document.getElementById('welcomeMsg').textContent='Welcome back, '+displayName;
+
+  const now=new Date();
+  const opts={weekday:'long',year:'numeric',month:'long',day:'numeric'};
+  document.getElementById('dashDate').textContent=now.toLocaleDateString('en-US',opts)+' • '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+
+  // Load saved notes
+  const saved=localStorage.getItem('aaic_notes_'+user);
+  if(saved)document.getElementById('notesArea').value=saved;
+}
+
+function saveNotes(){
+  const user=sessionStorage.getItem('aaic_user');
+  if(!user)return;
+  localStorage.setItem('aaic_notes_'+user,document.getElementById('notesArea').value);
+  const el=document.getElementById('notesSaved');
+  el.style.opacity='1';
+  setTimeout(()=>{el.style.opacity='0'},2000);
+}
+
+// Check for existing session on load
+(function(){
+  const user=sessionStorage.getItem('aaic_user');
+  if(user&&VALID_USERS.includes(user)){
+    showDashboard(user);
+  }
+})();
+</script>
+</body>
+</html>
