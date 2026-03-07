@@ -381,7 +381,9 @@ async function loadMapPins(map,mapEl){
         icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:'#4A90D9',fillOpacity:0.85,strokeColor:'#2C6FB5',strokeOpacity:1,strokeWeight:0.5,scale:3}
       });
       marker.addListener('click',()=>{
-        let content='<div style="font-family:sans-serif;padding:4px 2px;min-width:120px">';
+        const logoSrc = document.querySelector('.nav-logo img')?.src || '';
+        let content='<div style="font-family:sans-serif;padding:6px 4px;min-width:160px">';
+        content+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:0.05em">Inspected by</span>${logoSrc?`<img src="${logoSrc}" style="height:26px;width:auto">`:''}</div>`;
         if(latest.i)content+=`<strong style="font-size:13px;color:#1B2A3D">${latest.i}</strong><br>`;
         if(latest.d)content+=`<span style="font-size:12px;color:#666">${new Date(latest.d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>`;
         if(inspections.length>1)content+=`<br><span style="font-size:11px;color:#999">${inspections.length} inspections at this address</span>`;
