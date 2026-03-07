@@ -383,9 +383,7 @@ async function loadMapPins(map,mapEl){
       marker.addListener('click',()=>{
         const logoSrc = document.querySelector('.nav-logo img')?.src || '';
         let content='<div style="font-family:sans-serif;padding:6px 4px;min-width:160px">';
-        content+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:0.05em">Inspected by</span>${logoSrc?`<img src="${logoSrc}" style="height:26px;width:auto">`:''}</div>`;
-        if(latest.i)content+=`<strong style="font-size:13px;color:#1B2A3D">${latest.i}</strong><br>`;
-        if(latest.d)content+=`<span style="font-size:12px;color:#666">${new Date(latest.d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>`;
+        content+=`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:0.05em">Inspected by</span>${logoSrc?`<img src="${logoSrc}" style="height:26px;width:auto">`:''}</div>`;
         if(inspections.length>1)content+=`<br><span style="font-size:11px;color:#999">${inspections.length} inspections at this address</span>`;
         content+='</div>';
         infoWindow.setContent(content);
