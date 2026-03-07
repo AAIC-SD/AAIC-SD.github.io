@@ -568,9 +568,9 @@ async function initRadonMap(){
         zIndex: zOrder[cat] * 10,
         icon:{
           path:google.maps.SymbolPath.CIRCLE,
-          fillColor:colors.fill, fillOpacity:0.92,
+          fillColor:colors.fill, fillOpacity:cat==='safe'?0.75:0.92,
           strokeColor:colors.stroke, strokeOpacity:1,
-          strokeWeight:1, scale:4
+          strokeWeight:1, scale:cat==='safe'?3:5
         }
       });
       marker.addListener('click',()=>{
